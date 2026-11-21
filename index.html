@@ -1,1 +1,278 @@
 <!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Moja Nemčina</title>
+  <style>
+    body { margin: 0; font-family: -apple-system, sans-serif; background: #0f172a; color: #f8fafc; padding: 16px 16px 80px; }
+    h1 { margin: 0 0 4px; font-size: 1.5rem; }
+    .muted { color: #94a3b8; font-size: 0.9rem; margin-bottom: 14px; }
+    .card { background: #1e293b; border-radius: 12px; padding: 14px; margin-bottom: 12px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .num { font-size: 1.35rem; font-weight: 700; color: #38bdf8; }
+    label { display: block; font-size: 0.82rem; color: #cbd5e1; margin-top: 8px; margin-bottom: 4px; }
+    input, select, textarea, button {
+      width: 100%; box-sizing: border-box; border-radius: 10px;
+      border: 1px solid #334155; background: #0f172a; color: #f8fafc;
+      padding: 10px 12px; font-size: 0.95rem;
+    }
+    button { background: #38bdf8; color: #06202a; font-weight: 700; border: none; margin-top: 10px; }
+    button.sec { background: #334155; color: #f8fafc; }
+    button.mini { width: auto; padding: 6px 10px; font-size: 0.82rem; margin-top: 0; }
+    .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .de { font-weight: 700; font-size: 1.05rem; }
+    .sk { color: #cbd5e1; margin-top: 3px; }
+    .ex { color: #94a3b8; font-size: 0.85rem; margin-top: 6px; padding-left: 8px; border-left: 2px solid #38bdf8; }
+    .tag { display: inline-block; margin-top: 6px; font-size: 0.72rem; background: #0f172a; color: #38bdf8; padding: 2px 8px; border-radius: 999px; }
+    .nav { position: fixed; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(4, 1fr); background: #020617; border-top: 1px solid #1e293b; }
+    .nav button { margin: 0; border-radius: 0; background: none; color: #94a3b8; padding: 12px 4px; font-size: 0.8rem; }
+    .nav button.active { color: #38bdf8; font-weight: 700; }
+    .hide { display: none; }
+    .ok { color: #4ade80; font-weight: 700; margin-top: 8px; }
+    .err { color: #f87171; font-weight: 700; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <h1>Moja Nemčina</h1>
+  <div class="muted">Slovník, vety, výslovnosť a kvíz</div>
+
+  <div id="p-home">
+    <div class="grid">
+      <div class="card"><div class="num" id="sToday">0 / 25</div><div class="muted" style="margin:0;">Dnes</div></div>
+      <div class="card"><div class="num" id="sAll">0</div><div class="muted" style="margin:0;">Položiek</div></div>
+      <div class="card"><div class="num" id="s7">0</div><div class="muted" style="margin:0;">7 dní</div></div>
+      <div class="card"><div class="num" id="s30">0</div><div class="muted" style="margin:0;">30 dní</div></div>
+    </div>
+    <div class="card">
+      <strong>Výslovnosť</strong>
+      <div class="muted" style="margin:6px 0 0;">V záložke Slovník ťukni na „Hlas“ pri nemeckom výraze.</div>
+    </div>
+  </div>
+
+  <div id="p-list" class="hide">
+    <div class="card">
+      <input id="q" placeholder="Hľadať výraz..." oninput="drawList()" />
+      <label for="fCat">Kategória</label>
+      <select id="fCat" onchange="drawList()">
+        <option value="ALL">Všetko</option>
+        <option value="REWE">REWE</option>
+        <option value="Práca">Práca</option>
+        <option value="Obchod">Obchod</option>
+        <option value="Domácnosť">Domácnosť</option>
+        <option value="Cestovanie">Cestovanie</option>
+        <option value="Bežná komunikácia">Bežná komunikácia</option>
+      </select>
+    </div>
+    <div id="listBox"></div>
+  </div>
+
+  <div id="p-add" class="hide">
+    <div class="card">
+      <strong>Nové slovíčko alebo veta</strong>
+      <label for="inDe">Nemecky</label>
+      <input id="inDe" placeholder="napr. die Schicht" />
+      <label for="inSk">Slovensky</label>
+      <input id="inSk" placeholder="napr. zmena" />
+      <label for="inCat">Kategória</label>
+      <select id="inCat">
+        <option value="REWE">REWE</option>
+        <option value="Práca">Práca</option>
+        <option value="Obchod">Obchod</option>
+        <option value="Domácnosť">Domácnosť</option>
+        <option value="Cestovanie">Cestovanie</option>
+        <option value="Bežná komunikácia">Bežná komunikácia</option>
+      </select>
+      <label for="inEx">Príkladová veta (nemusí byť)</label>
+      <textarea id="inEx" placeholder="napr. Ich habe heute Spätschicht."></textarea>
+      <button onclick="saveNew()">Uložiť</button>
+      <div id="addMsg"></div>
+    </div>
+  </div>
+
+  <div id="p-quiz" class="hide">
+    <div class="card">
+      <div class="row">
+        <strong>Kvíz</strong>
+        <button class="mini sec" onclick="newQ()">Ďalšie</button>
+      </div>
+      <div id="qText" style="font-size:1.15rem; font-weight:700; margin-top:12px;"></div>
+      <div id="qSub" class="muted" style="margin-top:4px;"></div>
+      <input id="qAns" placeholder="Napíš preklad..." />
+      <button onclick="checkQ()">Skontrolovať</button>
+      <button class="sec" onclick="showQ()">Odpoveď</button>
+      <div id="qMsg"></div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button id="b-home" class="active" onclick="go('home')">Domov</button>
+    <button id="b-list" onclick="go('list')">Slovník</button>
+    <button id="b-add" onclick="go('add')">Pridať</button>
+    <button id="b-quiz" onclick="go('quiz')">Kvíz</button>
+  </div>
+
+  <script>
+    const K_ITEMS = "mn_items_1";
+    const K_LOGS = "mn_logs_1";
+    const SEED = [
+      { id: 1, de: "die Schicht", sk: "zmena", cat: "REWE", ex: "Ich habe heute Spätschicht." },
+      { id: 2, de: "das Trockensortiment", sk: "suchý sortiment", cat: "REWE", ex: "Wir arbeiten im Trockensortiment." },
+      { id: 3, de: "der Hubwagen", sk: "paletový vozík", cat: "REWE", ex: "Bitte bring den Hubwagen." },
+      { id: 4, de: "Wann fängst du an?", sk: "Kedy začínaš?", cat: "Práca", ex: "Ich fange um 14:30 Uhr an." },
+      { id: 5, de: "Wie viel kostet das?", sk: "Koľko to stojí?", cat: "Obchod", ex: "Wie viel kostet das zusammen?" }
+    ];
+
+    function getItems() {
+      const s = localStorage.getItem(K_ITEMS);
+      if (!s) {
+        localStorage.setItem(K_ITEMS, JSON.stringify(SEED));
+        return SEED.slice();
+      }
+      return JSON.parse(s);
+    }
+
+    function setItems(v) { localStorage.setItem(K_ITEMS, JSON.stringify(v)); }
+    function getLogs() { return JSON.parse(localStorage.getItem(K_LOGS) || "[]"); }
+    function logAct() {
+      const l = getLogs();
+      l.push(Date.now());
+      localStorage.setItem(K_LOGS, JSON.stringify(l));
+    }
+
+    function sayDe(t) {
+      if (!("speechSynthesis" in window)) return;
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(t);
+      u.lang = "de-DE";
+      u.rate = 0.95;
+      window.speechSynthesis.speak(u);
+    }
+
+    function go(tab) {
+      ["home", "list", "add", "quiz"].forEach(x => {
+        document.getElementById("p-" + x).classList.toggle("hide", x !== tab);
+        document.getElementById("b-" + x).classList.toggle("active", x === tab);
+      });
+      if (tab === "home") drawStats();
+      if (tab === "list") drawList();
+      if (tab === "quiz") newQ();
+    }
+
+    function drawStats() {
+      const items = getItems();
+      const logs = getLogs();
+      const now = Date.now();
+      const day = 86400000;
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+
+      document.getElementById("sToday").textContent = logs.filter(t => t >= todayStart.getTime()).length + " / 25";
+      document.getElementById("sAll").textContent = items.length;
+      document.getElementById("s7").textContent = logs.filter(t => t >= now - 7 * day).length;
+      document.getElementById("s30").textContent = logs.filter(t => t >= now - 30 * day).length;
+    }
+
+    function saveNew() {
+      const de = document.getElementById("inDe").value.trim();
+      const sk = document.getElementById("inSk").value.trim();
+      const cat = document.getElementById("inCat").value;
+      const ex = document.getElementById("inEx").value.trim();
+      const msg = document.getElementById("addMsg");
+      if (!de || !sk) {
+        msg.innerHTML = '<div class="err">Vyplň nemecky aj slovensky.</div>';
+        return;
+      }
+      const items = getItems();
+      items.unshift({ id: Date.now(), de, sk, cat, ex });
+      setItems(items);
+      logAct();
+      document.getElementById("inDe").value = "";
+      document.getElementById("inSk").value = "";
+      document.getElementById("inEx").value = "";
+      msg.innerHTML = '<div class="ok">Uložené.</div>';
+      drawStats();
+    }
+
+    function delItem(id) {
+      setItems(getItems().filter(x => x.id !== id));
+      drawList();
+      drawStats();
+    }
+
+    function esc(s) {
+      return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    function drawList() {
+      const q = document.getElementById("q").value.trim().toLowerCase();
+      const cat = document.getElementById("fCat").value;
+      const items = getItems().filter(x =>
+        (cat === "ALL" || x.cat === cat) &&
+        (!q || x.de.toLowerCase().includes(q) || x.sk.toLowerCase().includes(q))
+      );
+      const box = document.getElementById("listBox");
+      if (!items.length) {
+        box.innerHTML = '<div class="card"><span class="muted">Žiadne položky.</span></div>';
+        return;
+      }
+      box.innerHTML = items.map(x => `
+        <div class="card">
+          <div class="row">
+            <div class="de">${esc(x.de)}</div>
+            <div style="display:flex; gap:6px;">
+              <button class="mini sec" onclick="sayDe(${JSON.stringify(x.de)})">Hlas</button>
+              <button class="mini sec" onclick="delItem(${x.id})">X</button>
+            </div>
+          </div>
+          <div class="sk">${esc(x.sk)}</div>
+          ${x.ex ? `<div class="ex">${esc(x.ex)}</div>` : ""}
+          <div class="tag">${esc(x.cat)}</div>
+        </div>
+      `).join("");
+    }
+
+    let cur = null;
+    let toSk = true;
+
+    function newQ() {
+      const items = getItems();
+      document.getElementById("qMsg").innerHTML = "";
+      document.getElementById("qAns").value = "";
+      if (!items.length) {
+        document.getElementById("qText").textContent = "Pridaj najprv slovíčka.";
+        return;
+      }
+      cur = items[Math.floor(Math.random() * items.length)];
+      toSk = Math.random() > 0.5;
+      document.getElementById("qText").textContent = toSk ? cur.de : cur.sk;
+      document.getElementById("qSub").textContent = toSk ? "Prelož do slovenčiny" : "Prelož do nemčiny";
+    }
+
+    function checkQ() {
+      if (!cur) return;
+      const val = document.getElementById("qAns").value.trim().toLowerCase();
+      const right = (toSk ? cur.sk : cur.de).toLowerCase();
+      const box = document.getElementById("qMsg");
+      if (!val) {
+        box.innerHTML = '<div class="err">Napíš odpoveď.</div>';
+        return;
+      }
+      logAct();
+      if (right.includes(val) || val.includes(right)) {
+        box.innerHTML = `<div class="ok">Správne: ${esc(cur.de)} = ${esc(cur.sk)}</div>`;
+      } else {
+        box.innerHTML = `<div class="err">Správne je: ${esc(cur.de)} — ${esc(cur.sk)}</div>`;
+      }
+      drawStats();
+    }
+
+    function showQ() {
+      if (!cur) return;
+      document.getElementById("qMsg").innerHTML = `<div class="sk" style="margin-top:8px;"><strong>${esc(cur.de)}</strong> — ${esc(cur.sk)}</div>`;
+    }
+
+    drawStats();
+  </script>
+</body>
+</html>
